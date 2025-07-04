@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador de Fuerza Eléctrica</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <h1>Simulador de Fuerzas Eléctricas entre Cargas</h1>
+    <p style="font-size: 1.1em; color: #333; margin-bottom: 20px;">
+        Esta calculadora gráfica permite analizar las interacciones entre tres cargas puntuales (Q1, Q2 y Q3), calculando las fuerzas netas sobre cada una usando la Ley de Coulomb. También se visualiza el tipo de triángulo formado, los vectores de fuerza, y se muestra un procedimiento físico detallado paso a paso.
+    </p>
+
+    <!-- Formulario de entrada para las cargas y coordenadas -->
+    <form id="formulario">
+        <fieldset>
+            <legend>Datos de las cargas</legend>
+
+            <!-- Carga Q1 -->
+            <div class="carga">
+                <h3>Carga Q1</h3>
+                <label>X: <input type="number" id="x1" step="any" required value="0"/></label>
+                <label>Y: <input type="number" id="y1" step="any" required value="0.433"/></label>
+                <label>Valor: <input type="number" id="q1" step="any" required value="2"/></label>
+                <label>Unidad:
+                    <select id="u1">
+                        <option value="nC">nC</option>
+                        <option value="µC" selected>µC</option>
+                        <option value="mC">mC</option>
+                        <option value="C">C</option>
+                    </select>
+                </label>
+            </div>
+
+            <!-- Carga Q2 -->
+            <div class="carga">
+                <h3>Carga Q2</h3>
+                <label>X: <input type="number" id="x2" step="any" required value="-0.25"/></label>
+                <label>Y: <input type="number" id="y2" step="any" required value="0"/></label>
+                <label>Valor: <input type="number" id="q2" step="any" required value="-4"/></label>
+                <label>Unidad:
+                    <select id="u2">
+                        <option value="nC">nC</option>
+                        <option value="µC" selected>µC</option>
+                        <option value="mC">mC</option>
+                        <option value="C">C</option>
+                    </select>
+                </label>
+            </div>
+
+            <!-- Carga Q3 -->
+            <div class="carga">
+                <h3>Carga Q3</h3>
+                <label>X: <input type="number" id="x3" step="any" required value="0.25"/></label>
+                <label>Y: <input type="number" id="y3" step="any" required value="0"/></label>
+                <label>Valor: <input type="number" id="q3" step="any" required value="7"/></label>
+                <label>Unidad:
+                    <select id="u3">
+                        <option value="nC">nC</option>
+                        <option value="µC" selected>µC</option>
+                        <option value="mC">mC</option>
+                        <option value="C">C</option>
+                    </select>
+                </label>
+            </div>
+        </fieldset>
+        <div class="selector-carga" style="margin-top: 10px;">
+            <label>Seleccione carga objetivo:
+                <select id="cargaObjetivo">
+                    <option value="Q1">Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3" selected>Q3</option>
+                </select>
+            </label>
+        </div>
+
+        <!-- Botones de control -->
+        <div class="botones">
+            <button type="button" onclick="calcularFuerzas()">Calcular</button>
+            <button type="reset">Reiniciar</button>
+            <!-- Nuevo botón para abrir el asistente de coordenadas -->
+            <button type="button" onclick="openCoordinateAssistant()">📐 Asistente de Coordenadas</button>
+        </div>
+    </form>
+
+    <!-- Contenedor para los dos canvas -->
+    <div class="canvas-container">
+        <div class="canvas-wrapper">
+            <h3>Formación del Triángulo</h3>
+            <canvas id="canvasGeometric" width="350" height="300"></canvas>
+        </div>
+        <div class="canvas-wrapper">
+            <h3>Plano Cartesiano y Vectores</h3>
+            <canvas id="canvasVectors" width="350" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Resultados numéricos -->
+    <section id="resultados">
+        <h2>Resultados</h2>
+        <div id="resumen"></div>
+        <button id="toggleProc" onclick="toggleProcedimiento()" style="display:none;">📄 Ver procedimiento completo</button>
+        <div id="procedimiento" style="display:none;"></div>
+    </section>
+
+    <!-- Modal del Asistente de Coordenadas (Nueva Sección) -->
+    <div id="coordinateAssistantModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeCoordinateAssistant()">&times;</span>
+            <h2>Asistente de Coordenadas Geométricas</h2>
+            <div class="assistant-controls">
+                <label for="geometricShape">Seleccione la forma:</label>
+                <select id="geometricShape" onchange="updateShapeParameters()">
+                    <option value="equilateralTriangle">Triángulo Equilátero</option>
+                    <option value="square">Cuadrado</option>
+                    <option value="line">Línea Recta</option>
+                    <!-- Puedes añadir más formas aquí (ej. isósceles, rectángulo, círculo) -->
+                </select>
+
+                <div id="shapeParameters">
+                    <!-- Los parámetros se cargarán aquí dinámicamente -->
+                </div>
+
+                <label for="originPlacement">Posición del Origen (para Q1, Q2, Q3):</label>
+                <select id="originPlacement">
+                    <option value="centerBase">Centro de la Base (para triángulos/líneas)</option>
+                    <option value="vertex1">Carga 1 en (0,0)</option>
+                    <option value="centerFigure">Centro de la Figura (para cuadrados)</option>
+                </select>
+
+                <button onclick="generateGeometricCoordinates()">Generar Coordenadas</button>
+            </div>
+
+            <div class="generated-coords">
+                <h3>Coordenadas Generadas:</h3>
+                <p>Q1: <span id="genX1">N/A</span>, <span id="genY1">N/A</span></p>
+                <p>Q2: <span id="genX2">N/A</span>, <span id="genY2">N/A</span></p>
+                <p>Q3: <span id="genX3">N/A</span>, <span id="genY3">N/A</span></p>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="transferCoordinates()">Transferir a Calculadora</button>
+                <button onclick="closeCoordinateAssistant()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enlace al script principal -->
+    <script src="./PROGRAMAFINALLL.js"></script>
+</body>
+</html>
